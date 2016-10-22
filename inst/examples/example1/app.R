@@ -7,8 +7,8 @@ library(shinyFilters)
 f1 <- selectFilter('cyl')
 f2 <- selectFilter('gear')
 f3 <- selectFilter('carb')
-f4 <- sliderFilter('disp',c(0,500))
-f5 <- sliderFilter('hp',c(0,500))
+f4 <- sliderFilter('disp',defaults=c(0,500))
+f5 <- sliderFilter('hp',defaults=c(0,500))
 
 fl <- list(f1,f2,f3,f4,f5)
 

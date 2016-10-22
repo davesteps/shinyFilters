@@ -167,7 +167,7 @@ clearSlider <- function(input, output, session, defaults){
 #' @export
 #'
 #' @examples
-selectFilter <- function(id,fld_name=NULL,childCondition=NULL,conditionType=NULL){
+selectFilter <- function(id,fld_name=NULL,childCondition=NULL){
   # returns functions for creating server and UI components of filter
   force(id)
   force(fld_name)
@@ -191,7 +191,7 @@ selectFilter <- function(id,fld_name=NULL,childCondition=NULL,conditionType=NULL
 #' @export
 #'
 #' @examples
-sliderFilter <- function(id,fld_name,defaults=NULL,childCondition=NULL){
+sliderFilter <- function(id,fld_name=NULL,defaults=NULL,childCondition=NULL){
   # returns functions for creating server and UI components of filter
   force(id)
   force(fld_name)
