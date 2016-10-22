@@ -4,13 +4,7 @@ library(dplyr)
 library(shinyFilters)
 
 
-# TODo --------------------------------------------------------------------
-
-# parent filter rather than df
-# master box
-
-
-f1 <- selectFilter('cyl',c(6,8))
+f1 <- selectFilter('cyl')
 f2 <- selectFilter('gear')
 f3 <- selectFilter('carb')
 f4 <- sliderFilter('disp',c(0,500))

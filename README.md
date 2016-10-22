@@ -1,33 +1,79 @@
-Untitled
-================
+shinyFilters
+==========
 
-GitHub Documents
-----------------
+The idea of `shinyFilters` is to allow quick and easy filtering of data.frames in Shiny. 
 
-This is an R Markdown format used for publishing markdown documents to GitHub. When you click the **Knit** button all R code chunks are run and a markdown file (.md) suitable for publishing to GitHub is generated.
+* The filter choices are cascading - The user chooses 'USA' and 'Asia' in filter 1. All subsequent filters will be updated to only contian choices which meet this criteria.
 
-Including Code
---------------
+* Enable/disable child filter based on condition of parent - Filter 2 is only enabled when 'USA' or 'Asia' are selected in filter 1. 
 
-You can include R code in the document as follows:
 
-``` r
-summary(cars)
+Installation
+------------
+
+Install using the devtools package
+
+```
+# Install devtools, if you haven't already.
+install.packages("devtools")
+
+library(devtools)
+install_github("davesteps/shinyFilters")
 ```
 
-    ##      speed           dist       
-    ##  Min.   : 4.0   Min.   :  2.00  
-    ##  1st Qu.:12.0   1st Qu.: 26.00  
-    ##  Median :15.0   Median : 36.00  
-    ##  Mean   :15.4   Mean   : 42.98  
-    ##  3rd Qu.:19.0   3rd Qu.: 56.00  
-    ##  Max.   :25.0   Max.   :120.00
-
-Including Plots
+Examples
 ---------------
 
-You can also embed plots, for example:
+#### Example 1 ([see here](https://trestletech.shinyapps.io/ss-01-persist/))
 
-![](README_files/figure-markdown_github/pressure-1.png)
+```
+library(shiny)
+library(shinyjs)
+library(dplyr)
+library(shinyFilters)
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+f1 <- selectFilter('cyl',c(6,8))
+f2 <- selectFilter('gear')
+f3 <- selectFilter('carb')
+f4 <- sliderFilter('disp',c(0,500))
+f5 <- sliderFilter('hp',c(0,500))
+
+fl <- list(f1,f2,f3,f4,f5)
+
+
+ui <- fluidPage(
+  useShinyjs(),
+  sidebarLayout(
+    sidebarPanel(
+      f1$UI(label = 'Cyl'),
+      f2$UI(label = 'Gears'),
+      f3$UI(label = 'carb'),
+      f4$UI(label = 'Disp'),
+      f5$UI(label = 'hp'),
+      actionButton('reset','Reset Filters')
+    ),
+    mainPanel(
+      DT::dataTableOutput("data")
+    )))
+
+server <- function(input, output,session) {
+
+  data <- reactive(mtcars)
+
+  filterSet <- initFilters(fl, data)
+
+  observeEvent(input$reset,{
+    filterSet$reset()
+
+  })
+
+  output$data <- DT::renderDataTable({
+    filterSet$output()
+  })
+
+}
+
+shinyApp(ui, server)
+```
+
