@@ -3,7 +3,7 @@ shinyFilters
 
 The idea of `shinyFilters` is to allow quick and easy filtering of data.frames in Shiny. 
 
-* The filter choices are cascading - The user chooses 'USA' and 'Asia' in filter 1. All subsequent filters will be updated to only contian choices which meet this criteria.
+* The filter choices are cascading - The user chooses 'USA' and 'Asia' in filter 1. All subsequent filters will be updated to only contain choices which meet this criteria.
 
 * Enable/disable child filter based on condition of parent - Filter 2 is only enabled when 'USA' or 'Asia' are selected in filter 1. 
 

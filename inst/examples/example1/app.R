@@ -10,7 +10,7 @@ f3 <- selectFilter('carb')
 f4 <- sliderFilter('disp',defaults=c(0,500))
 f5 <- sliderFilter('hp',defaults=c(0,500))
 
-# create list of filters in
+# create list of filters
 fl <- list(f1,f2,f3,f4,f5)
 
 
