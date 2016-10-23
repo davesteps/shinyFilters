@@ -161,7 +161,6 @@ clearSlider <- function(input, output, session, defaults){
 #' @param id
 #' @param fld_name
 #' @param childCondition
-#' @param conditionType
 #'
 #' @return
 #' @export
@@ -174,7 +173,8 @@ selectFilter <- function(id,fld_name=NULL,childCondition=NULL){
   if(is.null(fld_name)) fld_name <- id
   list(UI=function(label,...) filterModuleInput(id,label,...),
        Server=function(inputdf,bypass=NULL) callModule(filterModule, id,inputdf, fld_name, childCondition,bypass),
-       reset = function() callModule(clearFilter, id))
+       reset = function() callModule(clearFilter, id),
+       id=id)
 
 
 }
@@ -199,7 +199,8 @@ sliderFilter <- function(id,fld_name=NULL,defaults=NULL,childCondition=NULL){
 
   list(UI=function(label,...) filterSliderInput(id,label,defaults,...),
        Server=function(inputdf,bypass=NULL) callModule(filterSlider, id, defaults, inputdf, fld_name, bypass),
-       reset = function() callModule(clearSlider, id, defaults))
+       reset = function() callModule(clearSlider, id, defaults),
+       id=id)
 
 
 }
@@ -225,3 +226,19 @@ initFilters <- function(fl, data){
        output = last(fl)$out$data)
 }
 
+
+#' filterInput
+#'
+#' @param filter A filter created with either sliderFilter or selectFilter
+#' @param ... Arguments passed to either sliderInput or selectizeInput
+#'
+#' @return
+#' @export
+#'
+#' @examples
+filterInput <- function(filter, label=NULL, ...){
+
+  if(is.null(label)) label <- filter$id
+  filter$UI(label=label,...)
+
+}

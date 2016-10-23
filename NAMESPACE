@@ -2,6 +2,7 @@
 
 export(clearFilter)
 export(clearSlider)
+export(filterInput)
 export(filterModule)
 export(filterModuleInput)
 export(filterSlider)

@@ -4,7 +4,7 @@
 \alias{sliderFilter}
 \title{sliderFilter}
 \usage{
-sliderFilter(id, fld_name, defaults = NULL, childCondition = NULL)
+sliderFilter(id, fld_name = NULL, defaults = NULL, childCondition = NULL)
 }
 \arguments{
 \item{childCondition}{}

@@ -4,7 +4,7 @@
 \alias{selectFilter}
 \title{selectFilter}
 \usage{
-selectFilter(id, fld_name, childCondition = NULL, conditionType = NULL)
+selectFilter(id, fld_name = NULL, childCondition = NULL)
 }
 \arguments{
 \item{conditionType}{}
