@@ -7,7 +7,7 @@
 selectFilter(id, fld_name = NULL, childCondition = NULL)
 }
 \arguments{
-\item{conditionType}{}
+\item{childCondition}{}
 }
 \description{
 selectFilter

@@ -136,10 +136,10 @@ filterSlider <- function(input, output, session,defaults, inputdf,fld_name,bypas
 #' @export
 #'
 #' @examples
-clearSlider <- function(input, output, session){
+clearFilter <- function(input, output, session){
   updateSelectInput(session,'filter',selected = character(0))
 }
-#' Title
+#' clearSlider
 #'
 #' @param input
 #' @param output

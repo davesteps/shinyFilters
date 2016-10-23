@@ -6,8 +6,8 @@ library(shinyFilters)
 # create filters in global section of app
 f1 <- selectFilter('cyl')
 f2 <- selectFilter('gear')
-f3 <- selectFilter('carb')
-f4 <- sliderFilter('disp',defaults=c(0,500))
+f3 <- sliderFilter('disp',defaults=c(0,500))
+f4 <- selectFilter('carb')
 f5 <- sliderFilter('hp',defaults=c(0,500))
 
 # create list of filters

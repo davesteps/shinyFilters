@@ -2,7 +2,7 @@
 % Please edit documentation in R/shinyFilters.R
 \name{clearSlider}
 \alias{clearSlider}
-\title{Title}
+\title{clearSlider}
 \usage{
 clearSlider(input, output, session, defaults)
 }
@@ -10,6 +10,6 @@ clearSlider(input, output, session, defaults)
 \item{defaults}{}
 }
 \description{
-Title
+clearSlider
 }
 
