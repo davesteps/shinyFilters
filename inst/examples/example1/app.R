@@ -13,13 +13,12 @@ f5 <- sliderFilter('hp',defaults=c(0,500))
 # create list of filters
 fl <- list(f1,f2,f3,f4,f5)
 
-
-
 ui <- fluidPage(
-  useShinyjs(),#shinyjs is required to show/hide filters
+  #shinyjs is required to show/hide filters
+  useShinyjs(),
   sidebarLayout(
     sidebarPanel(
-      #create UIs of filters
+      #create UIs of filters, id of filter is used as default label
       filterInput(f1),
       filterInput(f2),
       filterInput(f3),

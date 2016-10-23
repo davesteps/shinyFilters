@@ -38,20 +38,22 @@ f3 <- selectFilter('carb')
 f4 <- sliderFilter('disp',defaults=c(0,500))
 f5 <- sliderFilter('hp',defaults=c(0,500))
 
-# create list of filters in
+# create list of filters
 fl <- list(f1,f2,f3,f4,f5)
 
-
 ui <- fluidPage(
-  useShinyjs(),#shinyjs is required to show/hide filters
+  #shinyjs is required to show/hide filters
+  useShinyjs(),
   sidebarLayout(
     sidebarPanel(
-      f1$UI(label = 'Cyl'), #create UIs of filters
-      f2$UI(label = 'Gears'),
-      f3$UI(label = 'carb'),
-      f4$UI(label = 'Disp'),
-      f5$UI(label = 'hp'),
-      actionButton('reset','Reset Filters') #action but to reset filters
+      #create UIs of filters, id of filter is used as default label
+      filterInput(f1),
+      filterInput(f2),
+      filterInput(f3),
+      filterInput(f4),
+      filterInput(f5),
+      #action but to reset filters
+      actionButton('reset','Reset Filters')
     ),
     mainPanel(
       DT::dataTableOutput("data")
@@ -59,7 +61,7 @@ ui <- fluidPage(
 
 server <- function(input, output,session) {
 
-  # wrap data in reactive object
+  # wrap data in reactive expression
   data <- reactive(mtcars)
 
   # Initilize filters
