@@ -1,53 +1,48 @@
 library(shiny)
-library(shinyjs)
+# library(shinyjs)
 library(dplyr)
 library(shinyFilters)
 
-# create filters in global section of app
-f1 <- selectFilter('cyl')
-f2 <- selectFilter('gear')
-f3 <- sliderFilter('disp',defaults=c(0,500))
-f4 <- selectFilter('carb')
-f5 <- sliderFilter('hp',defaults=c(0,500))
 
-# create list of filters
-fl <- list(f1,f2,f3,f4,f5)
+# create filterset in global section of app
+filterSet <- newFilterSet('FS1') %>%
+  # give each filter unique id and tell it which column to filter on
+  addSelectFilter('cylinders','cyl') %>%
+  addSelectFilter('gears','gear') %>%
+  addSliderFilter('disp',value=c(0,500)) %>%
+  addSelectFilter('carb') %>%
+  addCustomSliderFilter('hp',value=seq(0,500,50))
+
 
 ui <- fluidPage(
   #shinyjs is required to show/hide filters
-  useShinyjs(),
+  # useShinyjs(),
   sidebarLayout(
     sidebarPanel(
-      #create UIs of filters, id of filter is used as default label
-      filterInput(f1),
-      filterInput(f2),
-      filterInput(f3),
-      filterInput(f4),
-      filterInput(f5),
+      filterInputs(filterSet),
       #action but to reset filters
-      actionButton('reset','Reset Filters')
+      hr(),
+      filterMaster(filterSet),
+      filterResetButton(filterSet)
+      # actionButton('resetFilter','resetFilter')
     ),
     mainPanel(
       DT::dataTableOutput("data")
-    )))
+    )
+  )
+)
 
 server <- function(input, output,session) {
 
-  # wrap data in reactive expression
+  # wrap data in reactive expression in case you
+  # need to do something to the data before filtering
   data <- reactive(mtcars)
 
-  # Initilize filters
-  filterSet <- initFilters(fl, data)
+  # initialize the filter set
+  filterSet <- initializeFilterSet(filterSet, data)
 
-  # observer for reset button
-  observeEvent(input$reset,{
-    filterSet$reset()
-  })
-
-  # filterSet$output() contains the filtered data
-  output$data <- DT::renderDataTable({
-    filterSet$output()
-  })
+  # the output is a reactive data.frame
+  output$data <- DT::renderDataTable(filterSet$output())
 
 }
 
