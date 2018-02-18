@@ -268,7 +268,6 @@ filterModule <- function(input, output, session, inputdf, fld_name,
   })
 
   df <- reactive({
-    print(fld_name)
     # update child data when filter changes
     if(inActive()||bypassed()){
       return(inputdf())
