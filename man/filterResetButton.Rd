@@ -4,7 +4,7 @@
 \alias{filterResetButton}
 \title{filterResetButton}
 \usage{
-filterResetButton(set, label = "Reset Filters")
+filterResetButton(set, label = "Reset Filters", ...)
 }
 \arguments{
 \item{label}{}
