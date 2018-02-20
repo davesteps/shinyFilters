@@ -37,9 +37,43 @@ filterInput <- function(set, filterid, label=NULL, ...){
 
 }
 
-filterModuleInput <- function(id,label,choices='',multiple=T,...){
+
+#' filterUINames
+#'
+#' @param set
+#'
+#' @return
+#' @export
+#'
+#' @examples
+filterUINames <- function(filterSet){
+  c(paste0(filterSet@id,'-',names(filterSet@filterList),'-filter'),
+    paste0(filterSet@id,'-',names(filterSet@filterList),'-filterInvert'),
+    paste0(filterSet@id,'-',names(filterSet@filterList),'-filterToggle'),
+    paste0(filterSet@id,'-filterMaster')
+    )
+}
+
+filterModuleInput <- function(id,label,invertOpt=F, hideOpt=F,...){
   ns <- NS(id)
-  selectizeInput(ns('filter'),label = label,choices,multiple=multiple,...)
+  tl <- tagList(
+    selectizeInput(ns('filter'),label = label,choices = character(0),multiple = T,...),
+    if(invertOpt){
+      checkboxInput(ns('filterInvert'),label = paste('Invert', label ,'Filter'),value = F)
+    } else {
+      NULL
+    }
+  )
+
+  if(hideOpt){
+    tagList(
+      checkboxInput(ns('filterToggle'),label = paste('Show', label ,'Filter'),value = F),
+      conditionalPanel(paste0("input.",'filterToggle'),tl,ns=ns)
+    )
+  } else {
+    tl
+  }
+
 }
 
 filterSliderInput <- function(id,label,value,step=1){
@@ -129,7 +163,7 @@ filterMaster <- function(set,label='Active Filters',choices='',...){
 #' @export
 #'
 #' @examples
-addSelectFilter <- function(set,id,fld_name=NULL,childCondition=NULL){
+addSelectFilter <- function(set,id,fld_name=NULL,invertOpt=F, hideOpt=F,childCondition=NULL){
   # returns functions for creating server and UI components of filter
   force(id)
   force(fld_name)
@@ -137,10 +171,10 @@ addSelectFilter <- function(set,id,fld_name=NULL,childCondition=NULL){
   # reset = function() callModule(filterResetModule, set@id)#paste0(set@id,id))
   if(is.null(fld_name)) fld_name <- id
   # id <- paste0(set@id,id)
-  newFilter <- list(UI=function(id,label,...) filterModuleInput(id,label,...),
-                    Server=function(inputdf,reset=NULL, master = NULL){
+  newFilter <- list(UI=function(id,label,...) filterModuleInput(id,label,invertOpt, hideOpt,...),
+                    Server=function(inputdf,reset=NULL, master = NULL,enabledByParent=NULL){
                       callModule(filterModule, id,inputdf, fld_name,
-                                 reset, master)},
+                                 reset, master,enabledByParent,childCondition=childCondition)},
                     # reset = function() callModule(filterResetModule, paste0(set@id,id)),
                     id=id,
                     fld_name=fld_name)
@@ -174,9 +208,9 @@ addSliderFilter <- function(set,id,fld_name=NULL, value, ...){
   if(is.null(fld_name)) fld_name <- id
 
   newFilter <- list(UI=function(id,label,...) filterSliderInput(id,label,value=value,...),
-                    Server=function(inputdf,reset=NULL, master = NULL){
+                    Server=function(inputdf,reset=NULL, master = NULL,enabledByParent=NULL){
                       callModule(filterSliderModule, id,inputdf, fld_name,
-                                 reset, master, value)},
+                                 reset, master, value,enabledByParent)},
                     # reset = function() callModule(filterResetModule, paste0(set@id,id)),
                     id=id,
                     fld_name=fld_name)
@@ -211,9 +245,9 @@ addCustomSliderFilter <- function(set,id,fld_name=NULL, value, mod=1, ...){
   if(is.null(fld_name)) fld_name <- id
 
   newFilter <- list(UI=function(id,label,...) filterSliderCustomInput(id,label,value=value,...),
-                    Server=function(inputdf,reset=NULL, master = NULL){
+                    Server=function(inputdf,reset=NULL, master = NULL,enabledByParent=NULL){
                       callModule(filterSliderCustom, id,inputdf, fld_name,
-                                 reset, master, value, mod)},
+                                 reset, master, value, mod,enabledByParent)},
                     # reset = function() callModule(filterResetModule, paste0(set@id,id)),
                     id=id,
                     fld_name=fld_name)
@@ -227,7 +261,7 @@ addCustomSliderFilter <- function(set,id,fld_name=NULL, value, mod=1, ...){
 }
 
 filterModule <- function(input, output, session, inputdf, fld_name,
-                         reset, master){
+                         reset, master, childCondition, enabledByParent){
 
   observe({
     # update select box when parent data frame changes
@@ -237,54 +271,54 @@ filterModule <- function(input, output, session, inputdf, fld_name,
     updateSelectInput(session,'filter',choices = newchoices,selected = sel)
   })
 
-  # disabled <- reactive(!is.null(parentCondition)&&!parentCondition())
-  inActive <- reactive(is.null(input$filter)||input$filter=='')#||disabled())
+  disabledByParent <- reactive(!is.null(enabledByParent)&&!enabledByParent())
+  inactive <- reactive(is.null(input$filter)||input$filter==''||disabledByParent())
   bypassed <- reactive(!is.null(master)&&!fld_name%in%master())
-  # items <- reactive(input$filter)
-  # invert <- reactive(!is.null(input$filterInvert)&&input$filterInvert)
+  # items <- reactive()
+  invert <- reactive(!is.null(input$filterInvert)&&input$filterInvert)
 
-  # child <- reactive({
-  #   if(is.null(childCondition))
-  #     return(FALSE)
-  #
-  #   x <- items()
-  #
-  #   eval(parse(text = childCondition))
-  #
-  # })
+  enableChild <- reactive({
+    if(is.null(childCondition))
+      return(TRUE)
 
-  # observe({
-  #   if(disabled()){
-  #     shinyjs::hide('filter')
-  #   } else {
-  #     shinyjs::show('filter')
-  #   }
-  # })
+    x <- input$filter
+
+    eval(parse(text = childCondition))
+
+  })
+
+  observe({
+    if(disabledByParent()){
+      shinyjs::disable('filter')
+    } else {
+      shinyjs::enable('filter')
+    }
+  })
 
   observeEvent(reset(),{
-    # str(reset)
-    # reset()
     updateSelectInput(session,'filter',selected = character(0))
   })
 
   df <- reactive({
     # update child data when filter changes
-    if(inActive()||bypassed()){
+    if(inactive()||bypassed()){
       return(inputdf())
     } else {
       i <- select_(inputdf(),y=fld_name)$y%in%input$filter
+      if(invert()) i <- !i
       return(inputdf()[i,])
     }
   })
 
-  return(list(name=fld_name,data=df,inActive=inActive,bypassed=bypassed))
+  return(list(name=fld_name,data=df,inactive=inactive,bypassed=bypassed,enableChild=enableChild))
 
 }
 
 filterSliderModule <- function(input, output, session, inputdf, fld_name,
-                               reset, master, value){
+                               reset, master, value,enabledByParent){
 
-  inActive <- reactive((input$filter[1] == value[1]) && (input$filter[2] == value[2]))#||disabled())
+  disabledByParent <- reactive(!is.null(enabledByParent)&&!enabledByParent())
+  inactive <- reactive(all(input$filter == value)||disabledByParent())
   bypassed <- reactive(!is.null(master)&&!fld_name%in%master())
 
   observeEvent(reset(),{
@@ -293,10 +327,20 @@ filterSliderModule <- function(input, output, session, inputdf, fld_name,
     updateSliderInput(session,'filter',value = value)
   })
 
+  enableChild <- reactive(TRUE)
+
+  observe({
+    if(disabledByParent()){
+      shinyjs::disable('filter')
+    } else {
+      shinyjs::enable('filter')
+    }
+  })
+
   df <- reactive({
 
     # update child data when filter changes
-    if(inActive()||bypassed()){
+    if(inactive()||bypassed()){
       return(inputdf())
     } else {
       y <- select_(inputdf(),y=fld_name)$y
@@ -305,17 +349,18 @@ filterSliderModule <- function(input, output, session, inputdf, fld_name,
     }
   })
 
-  return(list(name=fld_name,data=df,inActive=inActive,bypassed=bypassed))
+  return(list(name=fld_name,data=df,inactive=inactive,bypassed=bypassed,enableChild=enableChild))
 
 }
 
 filterSliderCustom <- function(input, output, session, inputdf, fld_name,
-                               reset, master, value,mod){
+                               reset, master, value,mod,enabledByParent){
 
   v <- c(value,Inf)
   items <- reactive(v[input$filter+1])
 
-  inActive <- reactive(all(input$filter==c(0,length(value))))
+  disabledByParent <- reactive(!is.null(enabledByParent)&&!enabledByParent())
+  inactive <- reactive(all(input$filter==c(0,length(value)))||disabledByParent())
   bypassed <- reactive(!is.null(master)&&!fld_name%in%master())
 
   observeEvent(reset(),{
@@ -324,11 +369,21 @@ filterSliderCustom <- function(input, output, session, inputdf, fld_name,
     updateSliderInput(session,'filter',value=c(min(value),max(value)))
   })
 
+  enableChild <- reactive(TRUE)
+
+  observe({
+    if(disabledByParent()){
+      shinyjs::disable('filter')
+    } else {
+      shinyjs::enable('filter')
+    }
+  })
+
   df <- reactive({
 
     vals <- v[input$filter+1]
     # update child data when filter changes
-    if(inActive()|bypassed()){
+    if(inactive()|bypassed()){
       return(inputdf())
     } else {
       y <- select_(inputdf(),y=as.name(fld_name))$y
@@ -337,7 +392,7 @@ filterSliderCustom <- function(input, output, session, inputdf, fld_name,
     }
   })
 
-  return(list(name=fld_name,data=df,inActive=inActive,bypassed=bypassed))
+  return(list(name=fld_name,data=df,inactive=inactive,bypassed=bypassed,enableChild=enableChild))
   # return(list(items=items))
 }
 
@@ -354,7 +409,7 @@ initFilterSet <- function(input, output, session, set, data){
     setNames(names(fl))
 
   observe({
-    active <- !lapply(fl, function(f) f$out$inActive()) %>% unlist()
+    active <- !lapply(fl, function(f) f$out$inactive()) %>% unlist()
     updateSelectInput(session,'filterMaster',choices = fl_names[active],
                       selected = fl_names[active])
   })
@@ -364,7 +419,7 @@ initFilterSet <- function(input, output, session, set, data){
   lapply(2:length(fl), function(i){
     # reset <-
     fl[[i]]$out <<- fl[[i]]$Server(inputdf=fl[[i-1]]$out$data,
-                                   # bypass=fl[[i-1]]$out$disableChild,
+                                   enabledByParent=fl[[i-1]]$out$enableChild,
                                    reset=r,
                                    master=m)
   })

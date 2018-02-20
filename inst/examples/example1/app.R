@@ -2,21 +2,25 @@ library(shiny)
 # library(shinyjs)
 library(dplyr)
 library(shinyFilters)
+# devtools::load_all('.')
 
 
 # create filterset in global section of app
 filterSet <- newFilterSet('FS1') %>%
   # give each filter unique id and tell it which column to filter on
-  addSelectFilter('cylinders','cyl') %>%
+  addSelectFilter('cylinders','cyl',childCondition='any(c(5,6)%in%x)') %>%
   addSelectFilter('gears','gear') %>%
   addSliderFilter('disp',value=c(0,500)) %>%
-  addSelectFilter('carb') %>%
+  addSelectFilter('carb',invertOpt=T) %>%
   addCustomSliderFilter('hp',value=seq(0,500,50))
 
 
+
+filterUINames(filterSet)
+
 ui <- fluidPage(
   #shinyjs is required to show/hide filters
-  # useShinyjs(),
+  shinyjs::useShinyjs(),
   sidebarLayout(
     sidebarPanel(
       filterInputs(filterSet),
@@ -42,7 +46,9 @@ server <- function(input, output,session) {
   filterSet <- initializeFilterSet(filterSet, data)
 
   # the output is a reactive data.frame
-  output$data <- DT::renderDataTable(filterSet$output())
+  output$data <- DT::renderDataTable({
+    print(names(input))
+    filterSet$output()})
 
 }
 

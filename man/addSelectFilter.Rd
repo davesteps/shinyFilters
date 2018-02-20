@@ -4,7 +4,8 @@
 \alias{addSelectFilter}
 \title{addSelectFilter}
 \usage{
-addSelectFilter(set, id, fld_name = NULL, childCondition = NULL)
+addSelectFilter(set, id, fld_name = NULL, invertOpt = F, hideOpt = F,
+  childCondition = NULL)
 }
 \arguments{
 \item{childCondition}{}
