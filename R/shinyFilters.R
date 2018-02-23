@@ -2,7 +2,8 @@
 setClass('filterSet',
          representation(id = 'character',
                         filterList = 'list',
-                        output = 'data.frame')
+                        output = 'data.frame',
+                        filterUINames = 'character')
          # prototype=c(fundInfo=NA,cashflow=NA,FX=NA)
 )
 
@@ -15,7 +16,7 @@ setClass('filterSet',
 #'
 #' @examples
 newFilterSet <- function(id='myFilters'){
-  new('filterSet',id=id,filterList=list())#)list(filterResetModule(id)))
+  new('filterSet',id=id,filterList=list(),filterUINames = c('GF-filterMaster'))#)list(filterResetModule(id)))
 }
 
 #' filterInput
@@ -177,11 +178,23 @@ addSelectFilter <- function(set,id,fld_name=NULL,invertOpt=F, hideOpt=F,childCon
                                  reset, master,enabledByParent,childCondition=childCondition)},
                     # reset = function() callModule(filterResetModule, paste0(set@id,id)),
                     id=id,
-                    fld_name=fld_name)
+                    fld_name=fld_name,
+                    type='select',
+                    invertOpt=invertOpt,
+                    hideOpt=hideOpt)
 
   names <- names(set@filterList)
   set@filterList[[ length(set@filterList) + 1 ]] = newFilter
   names(set@filterList) <- c(names,id)
+
+  uis <- head(set@filterUINames,length(set@filterUINames)-1)
+
+  set@filterUINames <- c(uis,
+                         c(paste(set@id,id,'filter',sep='-'),
+                           if(hideOpt) paste(set@id,id,'filterToggle',sep='-'),
+                           if(invertOpt) paste(set@id,id,'filterInvert',sep='-')),
+                         paste(set@id,'filterMaster',sep='-'))
+
 
   set
 
@@ -213,11 +226,19 @@ addSliderFilter <- function(set,id,fld_name=NULL, value, ...){
                                  reset, master, value,enabledByParent)},
                     # reset = function() callModule(filterResetModule, paste0(set@id,id)),
                     id=id,
-                    fld_name=fld_name)
+                    fld_name=fld_name,
+                    type='slider',
+                    value=value)
 
   names <- names(set@filterList)
   set@filterList[[ length(set@filterList) + 1 ]] = newFilter
   names(set@filterList) <- c(names,id)
+
+  uis <- head(set@filterUINames,length(set@filterUINames)-1)
+
+  set@filterUINames <- c(uis,
+                         paste(set@id,id,'filter',sep='-'),
+                         paste(set@id,'filterMaster',sep='-'))
 
   set
 
@@ -250,11 +271,20 @@ addCustomSliderFilter <- function(set,id,fld_name=NULL, value, mod=1, ...){
                                  reset, master, value, mod,enabledByParent)},
                     # reset = function() callModule(filterResetModule, paste0(set@id,id)),
                     id=id,
-                    fld_name=fld_name)
+                    fld_name=fld_name,
+                    type='customSlider',
+                    value=value,
+                    mod=mod)
 
   names <- names(set@filterList)
   set@filterList[[ length(set@filterList) + 1 ]] = newFilter
   names(set@filterList) <- c(names,id)
+
+  uis <- head(set@filterUINames,length(set@filterUINames)-1)
+
+  set@filterUINames <- c(uis,
+                         paste(set@id,id,'filter',sep='-'),
+                         paste(set@id,'filterMaster',sep='-'))
 
   set
 
@@ -444,5 +474,46 @@ initFilterSet <- function(input, output, session, set, data){
 initializeFilterSet <- function(set, data){
 
   callModule(initFilterSet,id = set@id, set, data)#paste0(set@id,id))
+
+}
+
+
+
+#' printActiveFilters
+#'
+#' @param input
+#' @param set
+#'
+#' @return
+#' @export
+#'
+#' @examples
+printActiveFilters <- function(set,input){
+
+  fl <- set@filterList
+  names(fl) <- lapply(fl, function(f) f$fld_name)
+
+  af <- fl[input[[paste0(set@id,'-filterMaster')]]]
+
+
+  print.filter <- function(f){
+    fn <- paste(set@id,f$id,'filter',sep='-')
+    vals <- input[[fn]]
+    if(f$type=='select'){
+      id = f$id
+      if(f$invertOpt&&input[[paste(set@id,f$id,'filterInvert',sep='-')]]){
+        id <- paste(id,'(inverted)')
+      }
+      paste0(id,': ',paste0(vals,collapse = '; '))
+    } else if(f$type=='slider'){
+      paste0(f$id,': ',paste0(vals,collapse = '; '))
+    } else if(f$type=='customSlider'){
+      vals <- f$value[vals+1]
+      paste0(f$id,': ',paste0(vals,collapse = '; '))
+    }
+  }
+
+
+  lapply(af, print.filter) %>% unlist
 
 }

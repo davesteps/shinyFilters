@@ -14,9 +14,13 @@ filterSet <- newFilterSet('FS1') %>%
   addSelectFilter('carb',invertOpt=T) %>%
   addCustomSliderFilter('hp',value=seq(0,500,50))
 
+filterSet@filterUINames
+
+filterSet@filterList[[1]]
 
 
-filterUINames(filterSet)
+
+
 
 ui <- fluidPage(
   #shinyjs is required to show/hide filters
@@ -31,7 +35,8 @@ ui <- fluidPage(
       # actionButton('resetFilter','resetFilter')
     ),
     mainPanel(
-      DT::dataTableOutput("data")
+      DT::dataTableOutput("data"),
+      verbatimTextOutput('activeFilters')
     )
   )
 )
@@ -43,12 +48,15 @@ server <- function(input, output,session) {
   data <- reactive(mtcars)
 
   # initialize the filter set
-  filterSet <- initializeFilterSet(filterSet, data)
+  fs <- initializeFilterSet(filterSet, data)
 
+  output$activeFilters <- renderPrint({
+    printActiveFilters(input,filterSet)
+  })
   # the output is a reactive data.frame
   output$data <- DT::renderDataTable({
-    print(names(input))
-    filterSet$output()})
+
+    fs$output()})
 
 }
 
