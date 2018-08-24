@@ -28,7 +28,7 @@ Usage
 
 ```
 library(shiny)
-# library(shinyjs)
+library(shinyjs)
 library(dplyr)
 library(shinyFilters)
 
@@ -45,15 +45,13 @@ filterSet <- newFilterSet('FS1') %>%
 
 ui <- fluidPage(
   #shinyjs is required to show/hide filters
-  # useShinyjs(),
+  useShinyjs(),
   sidebarLayout(
     sidebarPanel(
       filterInputs(filterSet),
-      #action but to reset filters
       hr(),
       filterMaster(filterSet),
       filterResetButton(filterSet)
-      # actionButton('resetFilter','resetFilter')
     ),
     mainPanel(
       DT::dataTableOutput("data")
