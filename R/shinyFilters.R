@@ -1,9 +1,10 @@
-
+setClassUnion("nullOrchar", c("NULL", "character"))
 setClass('filterSet',
          representation(id = 'character',
                         filterList = 'list',
                         output = 'data.frame',
-                        filterUINames = 'character')
+                        filterUINames = 'character',
+                        moduleID = 'nullOrchar')
          # prototype=c(fundInfo=NA,cashflow=NA,FX=NA)
 )
 
@@ -15,8 +16,8 @@ setClass('filterSet',
 #' @export
 #'
 #' @examples
-newFilterSet <- function(id='myFilters'){
-  new('filterSet',id=id,filterList=list(),filterUINames = c('GF-filterMaster'))#)list(filterResetModule(id)))
+newFilterSet <- function(id='myFilters', moduleID=NULL){
+  new('filterSet',id=id,filterList=list(),filterUINames = c('GF-filterMaster'), moduleID=moduleID)#)list(filterResetModule(id)))
 }
 
 #' filterInput
@@ -32,7 +33,12 @@ newFilterSet <- function(id='myFilters'){
 #' @examples
 filterInput <- function(set, filterid, label=NULL, ...){
   filter <- set@filterList[[filterid]]
-  ns <- NS(set@id)
+  # Add module namespace if moduleID is not NULL
+  if(!is.null(set@moduleID)){
+    ns <- shiny::NS(paste(set@moduleID,set@id, sep = "-"))
+  } else {
+    ns <- shiny::NS(set@id)
+  }
   if(is.null(label)) label <- filterid
   filter$UI(id = ns(filterid),label=label,...)
 
@@ -117,8 +123,12 @@ filterSliderCustomInput <- function(id,label,value){
 #'
 #' @examples
 filterResetButton <- function(set,label='Reset Filters',...){
-  id <- set@id
-  ns <- NS(id)
+  # Add module namespace if moduleID is not NULL
+  if(!is.null(set@moduleID)){
+    ns <- shiny::NS(paste(set@moduleID,set@id, sep = "-"))
+  } else {
+    ns <- shiny::NS(set@id)
+  }
   actionButton(ns('resetFilter'),label,...)
 }
 
@@ -148,8 +158,12 @@ filterInputs <- function(set){
 #'
 #' @examples
 filterMaster <- function(set,label='Active Filters',choices='',...){
-  id <- set@id
-  ns <- NS(id)
+  # Add module namespace if moduleID is not NULL
+  if(!is.null(set@moduleID)){
+    ns <- shiny::NS(paste(set@moduleID,set@id, sep = "-"))
+  } else {
+    ns <- shiny::NS(set@id)
+  }
   selectizeInput(ns('filterMaster'),label = label,choices,multiple=T,...)
 }
 
